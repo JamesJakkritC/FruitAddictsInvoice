@@ -19,17 +19,47 @@ SCOPES = [
 ]
 
 # ============================================================
-# Google Sheets Core Connectors
+# [สเตป [B] เพิ่มเติม]: ตรวจสอบสภาพแวดล้อมการทำงาน (Vercel หรือ Local)
+# ============================================================
+IS_VERCEL = os.environ.get('VERCEL') == '1'
+
+# ============================================================
+# Google Sheets Core Connectors (ปรับปรุงให้ยืดหยุ่นตามสภาพแวดล้อม)
 # ============================================================
 
 def get_worksheet(sheet_name):
-    """เชื่อมต่อ Google Sheets ผ่าน Environment Variables บน Vercel"""
+    """เชื่อมต่อ Google Sheets รองรับทั้งบน Vercel (Env) และเครื่องตัวเอง (Local Files)"""
     creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON")
     sheet_id = os.environ.get("GOOGLE_SHEET_ID")
     
+    # ถ้าทำงานบนเครื่องตัวเอง (Local) และไม่มีการตั้งค่า Env ให้ดึงจากไฟล์ในเครื่องแทน
+    if not IS_VERCEL:
+        # 1. พยายามอ่านกุญแจจากไฟล์ credentials.json โลคอล
+        if not creds_json:
+            local_creds_path = os.path.join(APP_DIR, 'credentials.json')
+            if os.path.exists(local_creds_path):
+                with open(local_creds_path, 'r', encoding='utf-8') as f:
+                    creds_json = f.read()
+                    
+        # 2. พยายามอ่าน Sheet ID จากไฟล์ config.json โลคอล
+        if not sheet_id:
+            local_config_path = os.path.join(APP_DIR, 'config.json')
+            if os.path.exists(local_config_path):
+                try:
+                    with open(local_config_path, 'r', encoding='utf-8') as f:
+                        local_cfg = json.load(f)
+                        sheet_id = local_cfg.get('sheet_id')
+                except Exception as e:
+                    print(f"[!] ไม่สามารถอ่านค่าจาก config.json บนเครื่องได้: {e}")
+
+    # ตรวจสอบความพร้อมของข้อมูลเชื่อมต่อ
     if not creds_json or not sheet_id:
-        raise RuntimeError("ระบบตรวจไม่พบ Environment Variables: GOOGLE_CREDENTIALS_JSON หรือ GOOGLE_SHEET_ID")
+        raise RuntimeError(
+            "ระบบตรวจไม่พบการตั้งค่าสิทธิ์เชื่อมต่อ: กรุณาตรวจสอบ Environment Variables บน Vercel "
+            "หรือตรวจสอบไฟล์ credentials.json / config.json ในเครื่องของคุณ"
+        )
         
+    # เริ่มต้นการเชื่อมต่อเข้า Google Sheets API
     creds = Credentials.from_service_account_info(json.loads(creds_json), scopes=SCOPES)
     client = gspread.authorize(creds)
     sheet = client.open_by_key(sheet_id)
@@ -399,7 +429,7 @@ def api_baht_text():
     except: amt = 0
     return jsonify({'text': baht_text(amt)})
 
-# เอ็นพอยต์เพื่อรักษาความเข้ากันได้ของ UI เดิม (Mock Elements)
+
 @app.route('/api/sync/status')
 def api_sync_status():
     return jsonify({
