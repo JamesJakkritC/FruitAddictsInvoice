@@ -76,36 +76,48 @@ def get_worksheet(sheet_name):
 
 
 def load_config_from_sheets():
-    """ดึงข้อมูลการตั้งค่าและเทมเพลตหัวบิลจากแผ่นงาน Config โดยตรง"""
     try:
         ws = get_worksheet('Config')
-        records = ws.get_all_records()
-        cfg = {r.get('Key'): r.get('Value') for r in records if r.get('Key')}
+        records = ws.get_all_values()
         
-        return {
-            'invoice_prefix': cfg.get('invoice_prefix', 'INV'),
-            'default_seller': cfg.get('default_seller', ''),
-            'bank_default': cfg.get('bank_default', ''),
-            'bank_account_default': cfg.get('bank_account_default', ''),
-            'company': {
-                'name': cfg.get('company_name', 'บริษัท ฟรุ๊ตแอคดิคส์ พรีเมี่ยมฟรุ๊ต จำกัด'),
-                'address': cfg.get('company_address', ''),
-                'taxid': cfg.get('company_taxid', ''),
-                'phone': cfg.get('company_phone', ''),
-                'mobile': cfg.get('company_mobile', ''),
-                'email': cfg.get('company_email', ''),
-                'line': cfg.get('company_line', ''),
-            },
-            'logo_path': cfg.get('logo_url', ''),
-            'stamp_path': cfg.get('stamp_url', ''),
-            'cloud_sync_enabled': True,
-            'device_id': 'CLOUD-WEB'
+        # 1. ดึงค่าจาก Sheet มาทำเป็น Dict ระนาบเดียวก่อน
+        raw_config = {}
+        for row in records:
+            if len(row) >= 2:
+                key = row[0].strip()
+                val = row[1].strip()
+                raw_config[key] = val
+        
+        # 2. จัดโครงสร้างใหม่ให้อยู่ในกลุ่ม "company" ตามที่หน้าบ้าน (index.html) ต้องการ
+        formatted_config = {
+            "invoice_prefix": raw_config.get("invoice_prefix", "INV"),
+            "default_seller": raw_config.get("default_seller", ""),
+            "bank_default": raw_config.get("bank_default", ""),
+            "bank_account_default": raw_config.get("bank_account_default", ""),
+            "device_id": "CLOUD-WEB",
+            "cloud_sync_enabled": True,
+            "logo_path": raw_config.get("logo_url", ""),
+            "stamp_path": raw_config.get("stamp_url", ""),
+            
+            # ยุบข้อมูลส่วนนี้ลงไปใน Object "company" เพื่อให้ตรงกับโครงสร้าง JavaScript หน้าบ้าน
+            "company": {
+                "name": raw_config.get("name", "บริษัท ฟรุ๊ตแอคดิคส์ พรีเมี่ยมฟรุ๊ต จำกัด"),
+                "address": raw_config.get("address", ""),
+                "taxid": raw_config.get("taxid", ""),
+                "phone": raw_config.get("phone", ""),
+                "mobile": raw_config.get("mobile", ""),
+                "email": raw_config.get("email", ""),
+                "line": raw_config.get("line", "")
+            }
         }
+        return formatted_config
+
     except Exception as e:
         print(f"Error loading config from sheet: {e}")
+        # กรณีเกิด Error ให้ส่งโครงสร้างเริ่มต้นที่หน้าบ้านจะไม่พังกลับไปแทน
         return {
-            'invoice_prefix': 'INV', 'default_seller': '', 'bank_default': '', 'bank_account_default': '',
-            'company': {'name': 'Fruit Addicts Online'}, 'logo_path': '', 'stamp_path': ''
+            "invoice_prefix": "INV",
+            "company": {"name": "บริษัท ฟรุ๊ตแอคดิคส์ พรีเมี่ยมฟรุ๊ต จำกัด", "address": "", "taxid": "", "phone": "", "mobile": "", "email": "", "line": ""}
         }
 
 
