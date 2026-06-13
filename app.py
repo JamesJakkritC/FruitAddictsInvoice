@@ -1,3 +1,29 @@
+# -*- coding: utf-8 -*-
+import os
+import json
+import uuid
+from datetime import datetime
+from flask import Flask, render_template, request, jsonify, redirect
+
+import gspread
+from google.oauth2.service_account import Credentials
+
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# ⚠️ บรรทัดนี้สำคัญที่สุด Vercel จะมองหาตัวแปรชื่อ app ตัวพิมพ์เล็กตรงนี้
+app = Flask(__name__,
+            static_folder=os.path.join(APP_DIR, 'static'),
+            template_folder=os.path.join(APP_DIR, 'templates'))
+
+# กำหนดชื่อสำหรับเรียกใช้บน WSGI ของ Vercel (ป้องกัน Vercel หาไม่เจอ)
+application = app 
+
+SCOPES = [
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive',
+]
+
+IS_VERCEL = os.environ.get('VERCEL') == '1'
 # ============================================================
 # Flask Routing Controller
 # ============================================================
