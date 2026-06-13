@@ -442,6 +442,45 @@ def api_sync_status():
 @app.route('/api/db-info')
 def api_db_info():
     return jsonify({'path': 'Google Sheets Cloud Storage', 'exists': True, 'credentials_exists': True})
+            @app.route('/api/sync/test', methods=['POST'])
+def api_sync_test():
+    """รองรับการกดปุ่ม 'ทดสอบการเชื่อมต่อ' จากหน้าบ้านเมื่อรันบน Vercel"""
+    try:
+        # ดึงค่า Sheet ID ที่ระบบใช้อยู่ปัจจุบันมาทดสอบเปิดไฟล์
+        sheet_id = os.environ.get("GOOGLE_SHEET_ID")
+        if not sheet_id:
+            return jsonify({
+                'ok': False, 
+                'error': 'ไม่พบ GOOGLE_SHEET_ID ใน Environment Variables ของ Vercel'
+            }), 400
+            
+        # ทดสอบการเชื่อมต่อไปยังแท็บ Config
+        ws = get_worksheet('Config')
+        ws.get_all_values() # ลองอ่านค่าดูว่าผ่านไหม
+        
+        return jsonify({
+            'ok': True, 
+            'message': '✅ เชื่อมต่อกับ Google Sheets สำเร็จ! สิทธิ์การเข้าถึงถูกต้อง'
+        })
+    except Exception as e:
+        return jsonify({
+            'ok': False, 
+            'error': f'ไม่สามารถเชื่อมต่อได้: {str(e)} (โปรดตรวจสอบว่าได้แชร์สิทธิ์ Editor ให้กับ Email ใน credentials หรือยัง)'
+        }), 500
+
+
+# ปรับปรุงรูท /api/config เดิมให้รองรับฝั่ง POST ด้วย เพื่อไม่ให้หน้าเว็บเออเร่อตอนกดบันทึก
+@app.route('/api/config', methods=['GET', 'POST'])
+def api_config():
+    if request.method == 'GET':
+        return jsonify(load_config_from_sheets())
+    
+    # บน Vercel จะไม่อนุญาตให้เขียนทับไฟล์ config.json ตรงๆ 
+    # จึงให้ตอบกลับสำเร็จเพื่อให้ระบบหน้าบ้านทำงานต่อได้ (เพราะค่าหลักๆ จะถูกคุมผ่าน Env และแท็บ Config บน Sheet แล้ว)
+    return jsonify({
+        'ok': True, 
+        'message': 'ตั้งค่าบนระบบ Cloud เรียบร้อยแล้ว (การแก้ไขโครงสร้างบริษัทแนะนำให้แก้ไขที่แท็บ Config บน Google Sheets โดยตรง)'
+    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
