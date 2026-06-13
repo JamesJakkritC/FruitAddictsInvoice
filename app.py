@@ -55,7 +55,11 @@ def get_worksheet(sheet_name):
             "ระบบตรวจไม่พบการตั้งค่าสิทธิ์เชื่อมต่อ: กรุณาตรวจสอบ Environment Variables บน Vercel"
         )
         
-    creds = Credentials.from_service_account_info(json.loads(creds_json), scopes=SCOPES)
+    creds_data = json.loads(creds_json)
+   if "private_key" in creds_data:
+    creds_data["private_key"] = creds_data["private_key"].replace("\\n", "\n")
+    creds = Credentials.from_service_account_info(creds_data, scopes=SCOPES)
+               
     client = gspread.authorize(creds)
     sheet = client.open_by_key(sheet_id)
     return sheet.worksheet(sheet_name)
