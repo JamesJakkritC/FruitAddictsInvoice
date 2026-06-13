@@ -51,34 +51,24 @@ def get_worksheet(sheet_name):
                     print(f"[!] ไม่สามารถอ่านค่าจาก config.json บนเครื่องได้: {e}")
 
     if not creds_json or not sheet_id:
-        raise RuntimeError(
-            "ระบบตรวจไม่พบการตั้งค่าสิทธิ์เชื่อมต่อ: กรุณาตรวจสอบ Environment Variables บน Vercel"
-        )
+        raise RuntimeError("ระบบตรวจไม่พบการตั้งค่าสิทธิ์เชื่อมต่อ: กรุณาตรวจสอบ Environment Variables")
         
-    # แก้ไขจุดนี้: ล้างช่องว่างซ้าย-ขวาอย่างปลอดภัยโดยไม่พังโครงสร้าง JSON
+    # ล้างช่องว่างที่อาจติดมาจากการ Copy-Paste
     creds_json = creds_json.strip()
     
-    # ป้องกันกรณีมีเครื่องหมายอัญประกาศเดี่ยว/คู่ครอบทับก้อน JSON ทั้งก้อนบน Vercel Env
-    if creds_json.startswith("'") and creds_json.endswith("'"):
-        creds_json = creds_json[1:-1].strip()
-    elif creds_json.startswith('"') and creds_json.endswith('"'):
-        creds_json = creds_json[1:-1].strip()
-        
     try:
         creds_data = json.loads(creds_json)
     except Exception as json_err:
-        raise RuntimeError(f"โครงสร้าง JSON ของ GOOGLE_CREDENTIALS_JSON ไม่ถูกต้อง: {str(json_err)}")
+        raise RuntimeError(f"โครงสร้าง JSON ไม่ถูกต้อง: {str(json_err)}")
 
     if "private_key" in creds_data:
-        # ล้างและจัดการสัญลักษณ์ขึ้นบรรทัดใหม่เลียนแบบการแปลงข้อมูลของ Python
-        pk = creds_data["private_key"]
-        pk = pk.replace("\\\\n", "\n").replace("\\n", "\n")
-        creds_data["private_key"] = pk
+        # แก้ปัญหาอักขระขึ้นบรรทัดใหม่พังบนระบบ Cloud Env ได้ครอบคลุมที่สุด
+        creds_data["private_key"] = creds_data["private_key"].replace("\\\\n", "\n").replace("\\n", "\n")
         
     try:
         creds = Credentials.from_service_account_info(creds_data, scopes=SCOPES)
     except Exception as cred_err:
-        raise RuntimeError(f"Google Credentials Error: {str(cred_err)}. เช็คฟิลด์ภายใน JSON เช่น token_uri, client_email")
+        raise RuntimeError(f"Google Credentials Error: {str(cred_err)}")
                
     client = gspread.authorize(creds)
     sheet = client.open_by_key(sheet_id)
