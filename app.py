@@ -54,21 +54,31 @@ def get_worksheet(sheet_name):
         raise RuntimeError(
             "ระบบตรวจไม่พบการตั้งค่าสิทธิ์เชื่อมต่อ: กรุณาตรวจสอบ Environment Variables บน Vercel"
         )
-
+        
+    # แก้ไขจุดนี้: ล้างช่องว่างซ้าย-ขวาอย่างปลอดภัยโดยไม่พังโครงสร้าง JSON
     creds_json = creds_json.strip()
+    
+    # ป้องกันกรณีมีเครื่องหมายอัญประกาศเดี่ยว/คู่ครอบทับก้อน JSON ทั้งก้อนบน Vercel Env
     if creds_json.startswith("'") and creds_json.endswith("'"):
-        creds_json = creds_json[1:-1]
-    if creds_json.startswith('"') and creds_json.endswith('"'):
-        creds_json = creds_json[1:-1]
+        creds_json = creds_json[1:-1].strip()
+    elif creds_json.startswith('"') and creds_json.endswith('"'):
+        creds_json = creds_json[1:-1].strip()
+        
+    try:
+        creds_data = json.loads(creds_json)
+    except Exception as json_err:
+        raise RuntimeError(f"โครงสร้าง JSON ของ GOOGLE_CREDENTIALS_JSON ไม่ถูกต้อง: {str(json_err)}")
 
-    creds_data = json.loads(creds_json)
     if "private_key" in creds_data:
-        # รองรับการล้างรหัสขึ้นบรรทัดใหม่ให้สมบูรณ์ ไม่ว่าจะหลุดมาในรูปแบบไหน
+        # ล้างและจัดการสัญลักษณ์ขึ้นบรรทัดใหม่เลียนแบบการแปลงข้อมูลของ Python
         pk = creds_data["private_key"]
         pk = pk.replace("\\\\n", "\n").replace("\\n", "\n")
         creds_data["private_key"] = pk
         
-    creds = Credentials.from_service_account_info(creds_data, scopes=SCOPES)
+    try:
+        creds = Credentials.from_service_account_info(creds_data, scopes=SCOPES)
+    except Exception as cred_err:
+        raise RuntimeError(f"Google Credentials Error: {str(cred_err)}. เช็คฟิลด์ภายใน JSON เช่น token_uri, client_email")
                
     client = gspread.authorize(creds)
     sheet = client.open_by_key(sheet_id)
