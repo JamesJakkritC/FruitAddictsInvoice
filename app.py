@@ -54,10 +54,19 @@ def get_worksheet(sheet_name):
         raise RuntimeError(
             "ระบบตรวจไม่พบการตั้งค่าสิทธิ์เชื่อมต่อ: กรุณาตรวจสอบ Environment Variables บน Vercel"
         )
-        
+
+    creds_json = creds_json.strip()
+    if creds_json.startswith("'") and creds_json.endswith("'"):
+        creds_json = creds_json[1:-1]
+    if creds_json.startswith('"') and creds_json.endswith('"'):
+        creds_json = creds_json[1:-1]
+
     creds_data = json.loads(creds_json)
     if "private_key" in creds_data:
-        creds_data["private_key"] = creds_data["private_key"].replace("\\n", "\n")
+        # รองรับการล้างรหัสขึ้นบรรทัดใหม่ให้สมบูรณ์ ไม่ว่าจะหลุดมาในรูปแบบไหน
+        pk = creds_data["private_key"]
+        pk = pk.replace("\\\\n", "\n").replace("\\n", "\n")
+        creds_data["private_key"] = pk
         
     creds = Credentials.from_service_account_info(creds_data, scopes=SCOPES)
                
