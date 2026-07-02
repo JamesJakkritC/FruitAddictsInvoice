@@ -159,10 +159,12 @@ def save_invoice_to_sheets(payload):
         
     now_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     items_json = json.dumps(payload.get('items', []), ensure_ascii=False)
-    
+    raw_taxid = payload.get('cust_taxid', '')
+    cust_taxid_str = f"'{raw_taxid}" if raw_taxid else ''
+            
     row_data = [
         invoice_no, payload.get('invoice_date', ''), payload.get('seller_name', ''),
-        payload.get('cust_name', ''), payload.get('cust_address', ''), payload.get('cust_taxid', ''),
+        payload.get('cust_name', ''), payload.get('cust_address', ''), cust_taxid_str,
         str(payload.get('subtotal', 0)), str(payload.get('grand_total', 0)), payload.get('amount_text', ''),
         payload.get('pay_method', ''), payload.get('pay_bank', ''), payload.get('pay_account_no', ''),
         payload.get('pay_date', ''), str(payload.get('pay_amount', 0)),
@@ -195,7 +197,10 @@ def upsert_customer(payload, now_str):
     ws = get_worksheet('Customers')
     all_values = ws.get_all_values()
     cust_name = payload.get('cust_name').strip()
-    row_data = [cust_name, payload.get('cust_address', ''), payload.get('cust_taxid', ''), now_str, now_str, 'CLOUD_WEB']
+    raw_taxid = payload.get('cust_taxid', '')
+    cust_taxid_str = f"'{raw_taxid}" if raw_taxid else ''
+
+    row_data = [cust_name, payload.get('cust_address', ''), cust_taxid_str, now_str, now_str, 'CLOUD_WEB']
     
     row_idx = -1
     for idx, row in enumerate(all_values):
