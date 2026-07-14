@@ -63,7 +63,7 @@
   .meta-table td { padding: 4px 8px; border: 1px solid #eee; white-space: nowrap; }
   .meta-table .lbl { background: #f9f9f9; color: #555; font-weight: bold; width: 1%; }
 
-h3.section { 
+  h3.section { 
     border-bottom: 2px solid #000; 
     color: #000; 
     font-weight: bold; 
@@ -74,7 +74,7 @@ h3.section {
     padding-bottom: 5px; 
   }
   
-.cust-box { 
+  .cust-box { 
     margin-left: 0; 
     padding-left: 0; 
     margin-bottom: 20px; 
@@ -126,7 +126,6 @@ h3.section {
   .toolbar { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: #fff; padding: 10px 20px;
              border-radius: 30px; box-shadow: 0 4px 12px rgba(0,0,0,.2); z-index: 100; display: flex; gap: 15px; align-items: center; }
   .toolbar button { background: #8bc34a; color: #fff; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-
 </style>
 </head>
 <body>
@@ -135,27 +134,21 @@ h3.section {
   <button onclick="window.print()">🖨 พิมพ์เอกสาร (PDF)</button>
 </div>
 
-{% set co = cfg.company %}
-{% set logo_url = "https://raw.githubusercontent.com/JamesJakkritC/FruitAddictsInvoice/main/Logo.png" %}
-{% set stamp_url = "https://raw.githubusercontent.com/JamesJakkritC/FruitAddictsInvoice/main/LogoInv.png" %}
+{% set co = cfg.company if cfg and cfg.company else {} %}
+{% set logo_url = logo_url or "https://raw.githubusercontent.com/JamesJakkritC/FruitAddictsInvoice/main/Logo.png" %}
+{% set stamp_url = stamp_url or "https://raw.githubusercontent.com/JamesJakkritC/FruitAddictsInvoice/main/LogoInv.png" %}
+{% set mode = print_mode if print_mode is defined and print_mode else 'both' %}
 
-{% if print_mode in ['both', 'original'] %}
-<div class="page">
-  <div class="document-type">ต้นฉบับ / ORIGINAL</div>
-  
-  </div>
-{% endif %}
+{% set pages = [
+  {'th': 'ต้นฉบับ', 'en': 'ORIGINAL', 'num': '1', 'key': 'original'},
+  {'th': 'สำเนา', 'en': 'COPY', 'num': '2', 'key': 'copy'}
+] %}
 
-
-{% if print_mode in ['both', 'copy'] %}
-<div class="page">
-  <div class="document-type">สำเนา / COPY</div>
-  
-  </div>
-{% endif %}
+{% for p in pages %}
+  {% if mode == 'both' or mode == p.key %}
 <div class="page">
   <div class="corner"></div>
-  <div class="corner-num">{{ type[2] }}</div>
+  <div class="corner-num">{{ p.num }}</div>
 
   <div class="header">
     <div class="brand">
@@ -163,7 +156,7 @@ h3.section {
     </div>
     <div class="doc-title">
       <h1>ใบเสร็จรับเงิน</h1>
-      <div class="sub">{{ type[0] }} / {{ type[1] }}</div>
+      <div class="sub">{{ p.th }} / {{ p.en }}</div>
     </div>
   </div>
 
@@ -258,7 +251,7 @@ h3.section {
 
     <div class="sign-col">
       <div style="font-size:12px;">ในนาม {{ co.name }}</div>
-      {% if cfg.signature_path %}
+      {% if cfg and cfg.signature_path %}
         <img class="sig-img" src="{{ signature_url }}" alt="signature">
       {% endif %}
       <div class="line"></div>
@@ -267,6 +260,7 @@ h3.section {
     </div>
   </div>
 </div>
+  {% endif %}
 {% endfor %}
 
 </body>
