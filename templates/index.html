@@ -877,6 +877,19 @@
     t.className = 'toast show' + (isErr ? ' error' : '');
     setTimeout(() => t.className = 'toast', 2800);
   }
+    // ฟังก์ชันใหม่ที่เรียกใช้แทนฟังก์ชันปริ้นเดิม หรือครอบฟังก์ชันเดิมไว้
+  function printInvoiceCustom(invoiceNo) {
+    // ดึงค่า mode จาก Dropdown
+    const printModeElement = document.getElementById('print_mode');
+    const mode = printModeElement ? printModeElement.value : 'both';
+    
+    // สมมติว่า Route เดิมของคุณคือ /invoice หรือ /print
+    // ให้แนบ Query String ไปด้วย
+    const printUrl = `/invoice/${invoiceNo}?print_mode=${mode}`;
+    
+    // เปิดหน้าต่างใหม่เพื่อสั่งพิมพ์
+    window.open(printUrl, '_blank');
+  }
 </script>
 </body>
 </html>
