@@ -191,6 +191,15 @@
       </div>
     </div>
 
+    <div class="print-options" style="margin-bottom: 10px;">
+      <label for="print_mode">เลือกรูปแบบการพิมพ์: </label>
+      <select id="print_mode" class="form-select" style="padding: 5px; border-radius: 4px;">
+        <option value="both">พิมพ์ทั้งต้นฉบับและสำเนา (Default)</option>
+        <option value="original">เฉพาะต้นฉบับ (Original)</option>
+        <option value="copy">เฉพาะสำเนา (Copy)</option>
+      </select>
+    </div>
+    
     <div class="card" style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
       <div><span class="hint">บันทึกในเครื่องทันที — และซิงค์ขึ้น Google Sheets อัตโนมัติเมื่อมี internet</span></div>
       <div style="display:flex; gap:8px;">
@@ -200,15 +209,6 @@
       </div>
     </div>
   </div>
-
-  <div class="print-options" style="margin-bottom: 10px;">
-  <label for="print_mode">เลือกรูปแบบการพิมพ์: </label>
-  <select id="print_mode" class="form-select" style="padding: 5px; border-radius: 4px;">
-    <option value="both">พิมพ์ทั้งต้นฉบับและสำเนา (Default)</option>
-    <option value="original">เฉพาะต้นฉบับ (Original)</option>
-    <option value="copy">เฉพาะสำเนา (Copy)</option>
-  </select>
-</div>
 
   <!-- ==================== LIST TAB ==================== -->
   <div id="page-list" class="hidden">
