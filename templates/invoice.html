@@ -63,18 +63,18 @@
   .meta-table td { padding: 4px 8px; border: 1px solid #eee; white-space: nowrap; }
   .meta-table .lbl { background: #f9f9f9; color: #555; font-weight: bold; width: 1%; }
 
-  h3.section { 
+h3.section { 
     border-bottom: 2px solid #000; 
     color: #000; 
     font-weight: bold; 
-    margin: 20px 0 12px 0; 
+    margin: 20px 0 12px 0; /* ชิดซ้ายสุด */
     font-size: 15px; 
     display: inline-block; 
     padding-right: 120px;
     padding-bottom: 5px; 
   }
   
-  .cust-box { 
+.cust-box { 
     margin-left: 0; 
     padding-left: 0; 
     margin-bottom: 20px; 
@@ -89,7 +89,7 @@
       width: 210mm; 
       height: 297mm;
     }
-    .toolbar, .no-print { display: none !important; }
+    .toolbar { display: none !important; }
   }
 
   table.items { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -124,21 +124,14 @@
   .sig-img { max-height: 50px; margin-bottom: -35px; position: relative; z-index: 1; }
 
   .toolbar { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: #fff; padding: 10px 20px;
-              border-radius: 30px; box-shadow: 0 4px 12px rgba(0,0,0,.2); z-index: 100; display: flex; gap: 15px; align-items: center; }
+             border-radius: 30px; box-shadow: 0 4px 12px rgba(0,0,0,.2); z-index: 100; display: flex; gap: 15px; align-items: center; }
   .toolbar button { background: #8bc34a; color: #fff; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-  .toolbar select { padding: 6px 12px; border-radius: 15px; border: 1px solid #ccc; font-family: 'Sarabun', sans-serif; font-size: 14px; outline: none; cursor: pointer; }
 
 </style>
 </head>
 <body>
 
 <div class="toolbar no-print">
-  <label for="docTypeSelect"><strong>รูปแบบการพิมพ์:</strong></label>
-  <select id="docTypeSelect" onchange="changeDocType(this.value)">
-    <option value="both" {% if print_mode == 'both' or not print_mode %}selected{% endif %}>3. พิมพ์ทั้ง 2 แผ่น (ต้นฉบับ + สำเนา)</option>
-    <option value="original" {% if print_mode == 'original' %}selected{% endif %}>1. พิมพ์ ต้นฉบับ / ORIGINAL อย่างเดียว</option>
-    <option value="copy" {% if print_mode == 'copy' %}selected{% endif %}>2. พิมพ์ สำเนา / COPY อย่างเดียว</option>
-  </select>
   <button onclick="window.print()">🖨 พิมพ์เอกสาร (PDF)</button>
 </div>
 
@@ -146,19 +139,7 @@
 {% set logo_url = "https://raw.githubusercontent.com/JamesJakkritC/FruitAddictsInvoice/main/Logo.png" %}
 {% set stamp_url = "https://raw.githubusercontent.com/JamesJakkritC/FruitAddictsInvoice/main/LogoInv.png" %}
 
-{% set all_docs = [('ต้นฉบับ', 'ORIGINAL', 1), ('สำเนา', 'COPY', 2)] %}
-{% set print_mode = print_mode or request.args.get('type', 'both') %}
-
-{% set docs_to_print = [] %}
-{% if print_mode == 'original' %}
-  {% set docs_to_print = [all_docs[0]] %}
-{% elif print_mode == 'copy' %}
-  {% set docs_to_print = [all_docs[1]] %}
-{% else %}
-  {% set docs_to_print = all_docs %}
-{% endif %}
-
-{% for type in docs_to_print %}
+{% for type in [('ต้นฉบับ', 'ORIGINAL', 1), ('สำเนา', 'COPY', 2)] %}
 <div class="page">
   <div class="corner"></div>
   <div class="corner-num">{{ type[2] }}</div>
@@ -274,14 +255,6 @@
   </div>
 </div>
 {% endfor %}
-
-<script>
-function changeDocType(type) {
-  const url = new URL(window.location.href);
-  url.searchParams.set('type', type);
-  window.location.href = url.toString();
-}
-</script>
 
 </body>
 </html>
