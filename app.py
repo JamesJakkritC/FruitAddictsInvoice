@@ -276,10 +276,6 @@ def page_index():
 
 @app.route('/print/<invno>')
 def page_print(invno):
-    # รับพารามิเตอร์ประเภทการพิมพ์จาก URL (เช่น /print/INV2026070001?type=original)
-    # ค่าที่เป็นไปได้: 'original' (ต้นฉบับ), 'copy' (สำเนา), 'both' (ทั้งสองอย่าง)
-    print_mode = request.args.get('type', 'both')
-
     ws = get_worksheet('Invoices')
     all_values = ws.get_all_values()
     headers = all_values[0]
@@ -301,16 +297,7 @@ def page_print(invno):
         return f'ไม่พบใบเสร็จรับเงินเลขที่: {invno}', 404
         
     cfg = load_config_from_sheets()
-    
-    # ส่ง print_mode ไปให้ invoice.html ใช้งาน
-    return render_template(
-        'invoice.html', 
-        inv=inv, 
-        cfg=cfg, 
-        logo_url=cfg.get('logo_path', ''), 
-        stamp_url=cfg.get('stamp_path', ''),
-        print_mode=print_mode
-    )
+    return render_template('invoice.html', inv=inv, cfg=cfg, logo_url=cfg['logo_path'], stamp_url=cfg['stamp_path'])
 
 
 @app.route('/api/config', methods=['GET', 'POST'])
