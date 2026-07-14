@@ -518,7 +518,13 @@
     try {
       const r = await api('/api/invoices', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) });
       toast('บันทึก ' + r.invoice_no + ' เปิดหน้าพิมพ์...');
-      window.open('/print/' + r.invoice_no, '_blank');
+      
+      // --- [แก้ไขโค้ดส่วนนี้] ดึงค่าจาก Dropdown ส่งไปกับ URL ---
+      const printModeElement = document.getElementById('print_mode');
+      const mode = printModeElement ? printModeElement.value : 'both';
+      window.open('/print/' + r.invoice_no + '?print_mode=' + mode, '_blank');
+      // --------------------------------------------------
+
       resetForm();
     } catch (e) { toast(e.message, true); }
     setSaving(false);
