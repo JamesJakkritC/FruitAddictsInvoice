@@ -139,7 +139,20 @@ h3.section {
 {% set logo_url = "https://raw.githubusercontent.com/JamesJakkritC/FruitAddictsInvoice/main/Logo.png" %}
 {% set stamp_url = "https://raw.githubusercontent.com/JamesJakkritC/FruitAddictsInvoice/main/LogoInv.png" %}
 
-{% for type in [('ต้นฉบับ', 'ORIGINAL', 1), ('สำเนา', 'COPY', 2)] %}
+{% if print_mode in ['both', 'original'] %}
+<div class="page">
+  <div class="document-type">ต้นฉบับ / ORIGINAL</div>
+  
+  </div>
+{% endif %}
+
+
+{% if print_mode in ['both', 'copy'] %}
+<div class="page">
+  <div class="document-type">สำเนา / COPY</div>
+  
+  </div>
+{% endif %}
 <div class="page">
   <div class="corner"></div>
   <div class="corner-num">{{ type[2] }}</div>
