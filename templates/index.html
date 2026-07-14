@@ -195,7 +195,7 @@
       <div><span class="hint">บันทึกในเครื่องทันที — และซิงค์ขึ้น Google Sheets อัตโนมัติเมื่อมี internet</span></div>
       <div style="display:flex; gap:8px;">
         <button class="btn btn-secondary" onclick="resetForm()">ล้างฟอร์ม</button>
-        <button onclick="openPrintModal('INV-2026-001')" class="btn btn-primary"> 🖨️ พิมพ์ใบเสร็จ </button>
+        <button class="btn btn-blue" id="btn-save-print" onclick="saveAndPrint()">บันทึก + พิมพ์ใบเสร็จ</button>
         <button class="btn btn-success" id="btn-save" onclick="saveOnly()">บันทึกอย่างเดียว</button>
       </div>
     </div>
@@ -868,29 +868,6 @@
     t.className = 'toast show' + (isErr ? ' error' : '');
     setTimeout(() => t.className = 'toast', 2800);
   }
-  function openPrintModal(invoiceNo) {
-  const choice = prompt(
-    "กรุณาเลือกรูปแบบการพิมพ์:\n" +
-    "1 = พิมพ์ ต้นฉบับ / ORIGINAL อย่างเดียว\n" +
-    "2 = พิมพ์ สำเนา / COPY อย่างเดียว\n" +
-    "3 = พิมพ์ทั้ง 2 แผ่น (ต้นฉบับ + สำเนา)",
-    "3"
-  );
-
-  let docType = 'both';
-  if (choice === '1') {
-    docType = 'original';
-  } else if (choice === '2') {
-    docType = 'copy';
-  } else if (choice === '3') {
-    docType = 'both';
-  } else {
-    return; // ยกเลิกหากปิด Dialog หรือใส่ค่าอื่น
-  }
-
-  // เปิดหน้าต่างใหม่เพื่อสั่งพิมพ์ตามเงื่อนไขที่เลือก
-  window.open(`/invoice/${invoiceNo}?doc_type=${docType}`, '_blank');
-}
 </script>
 </body>
 </html>
