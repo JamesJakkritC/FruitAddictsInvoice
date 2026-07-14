@@ -297,8 +297,25 @@ def page_print(invno):
         return f'ไม่พบใบเสร็จรับเงินเลขที่: {invno}', 404
         
     cfg = load_config_from_sheets()
+    
+    # -------------------------------------------------------------
+    # [ส่วนที่เพิ่มเข้าไปใหม่] ดึงค่าเงื่อนไขการพิมพ์จาก Query String ถ้าไม่มีให้ตั้งเป็น 'both'
+    # -------------------------------------------------------------
     print_mode = request.args.get('print_mode', 'both')
-    return render_template('invoice.html', inv=inv, cfg=cfg, logo_url=cfg['logo_path'], stamp_url=cfg['stamp_path'], print_mode=print_mode)
+    
+    # ดึง URL รูปภาพแบบปลอดภัย (ใช้ .get ป้องกัน KeyError หาก Config ตัวหลักดึงไม่สำเร็จ)
+    logo_url = cfg.get('logo_path', '')
+    stamp_url = cfg.get('stamp_path', '')
+    
+    # ส่งค่า print_mode เข้าไปใน Template เพื่อให้ฝั่ง HTML (Jinja2) นำไปกรองหน้า
+    return render_template(
+        'invoice.html', 
+        inv=inv, 
+        cfg=cfg, 
+        logo_url=logo_url, 
+        stamp_url=stamp_url, 
+        print_mode=print_mode
+    )
 
 
 @app.route('/api/config', methods=['GET', 'POST'])
