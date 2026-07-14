@@ -571,6 +571,7 @@
         <td><span class="badge ${r.pay_method || ''}">${ml[r.pay_method] || '-'}</span></td>
         <td class="num">${fmt(r.grand_total)}</td>
         <td>
+          <button class="btn btn-success btn-sm" onclick="copyInv('${r.invoice_no}')">คัดลอก</button>
           <button class="btn btn-blue btn-sm" onclick="printInv('${r.invoice_no}')">พิมพ์</button>
           <button class="btn btn-secondary btn-sm" onclick="editInv('${r.invoice_no}')">แก้ไข</button>
           <button class="btn btn-danger btn-sm" onclick="delInv('${r.invoice_no}')">ลบ</button>
@@ -895,6 +896,53 @@
     
     // เปิดหน้าต่างใหม่เพื่อสั่งพิมพ์
     window.open(printUrl, '_blank');
+  }
+  async function copyInv(no) {
+    const inv = await api('/api/invoices/' + no);
+    if (!inv || inv.error) { toast('ไม่พบข้อมูลใบเสร็จที่ต้องการคัดลอก', true); return; }
+    
+    // 1. สำคัญที่สุด: สั่งให้ระบบมองว่านี่คือ "การสร้างใบใหม่" ไม่ใช่การอัปเดตของเดิม
+    isUpdate = false; 
+    originalInvoiceNo = ''; 
+    createdAt = null;
+
+    // 2. ขอเลขที่ใบเสร็จใหม่ล่าสุดจากระบบ
+    await nextInvoiceNo();
+
+    // 3. วันที่ (ตั้งค่าเป็นวันนี้อัตโนมัติ เพื่อป้องกันการออกบิลย้อนหลังผิดพลาด)
+    const today = new Date().toISOString().slice(0,10);
+    document.getElementById('invoice_date').value = today;
+    document.getElementById('pay_date').value = today;
+
+    // 4. คัดลอกข้อมูลลูกค้าและการชำระเงินมาทั้งหมด
+    const sel = document.getElementById('seller_name');
+    if (sel && inv.seller_name) {
+      const exists = [...sel.options].some(o => o.value === inv.seller_name);
+      if (!exists) {
+        const opt = document.createElement('option');
+        opt.value = inv.seller_name; opt.textContent = inv.seller_name + ' (เก่า)';
+        sel.appendChild(opt);
+      }
+      sel.value = inv.seller_name;
+    }
+    document.getElementById('cust_name').value = inv.cust_name || '';
+    document.getElementById('cust_address').value = inv.cust_address || '';
+    document.getElementById('cust_taxid').value = inv.cust_taxid || '';
+    document.getElementById('pay_method').value = inv.pay_method || 'transfer';
+    document.getElementById('pay_bank').value = inv.pay_bank || '';
+    document.getElementById('pay_account_no').value = inv.pay_account_no || '';
+    document.getElementById('pay_amount').value = inv.pay_amount || 0;
+
+    // 5. คัดลอกรายการสินค้าทั้งหมด
+    document.getElementById('items_body').innerHTML = '';
+    (inv.items || []).forEach(it => addItem(it.description, it.quantity, it.unit_price));
+    if (!inv.items || !inv.items.length) addItem();
+    
+    recalc();
+    
+    // 6. สลับหน้ากลับไปที่ฟอร์มเพื่อแก้ไข/บันทึก และแจ้งเตือน
+    switchTab('form');
+    toast('คัดลอกข้อมูลเรียบร้อย (เป็นเลขใบเสร็จใหม่)');
   }
 </script>
 </body>
